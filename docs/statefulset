@@ -1,0 +1,3 @@
+1 创建service(包括service和headless service)
+2 创建persistentVolumeClaim
+3 创建statefulset

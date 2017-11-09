@@ -1,0 +1,2 @@
+2017/12/09 22:45:32 [mysql.go:34][C] init mysql connection err: dial tcp 10.39.14.11:3306: i/o timeout
+2017/12/09 22:45:32 [clientset.go:31][C] query cluster err: sql: database is closed

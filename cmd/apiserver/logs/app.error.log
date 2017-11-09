@@ -1,0 +1,3 @@
+2017/11/16 20:35:19 [app.go:35][E] deploy app where named "Service \"demo\" is invalid: spec.ports: Required value" err: 
+2017/11/16 20:39:12 [app.go:35][E] deploy app where named "services \"demo\" already exists" err: 
+2017/11/24 19:18:53 [app.go:36][E] deploy app where named "namespaces \"huangjia\" not found" err: 
