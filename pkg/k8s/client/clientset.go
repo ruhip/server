@@ -18,7 +18,7 @@ import (
 	"os"
 	"path/filepath"
 
-	api "server/pkg/api/apiserver"
+	api "server/pkg/api/apiserver/v1beta1"
 	"server/pkg/k8s/configuration"
 	"server/pkg/k8s/metric"
 	"server/pkg/k8s/service"
@@ -82,6 +82,31 @@ func GetClientset(clusterID string) *clientset {
 	if fake, ok := fakes[clusterID]; ok {
 		return fake
 	}
+	return nil
+}
+
+// AddClientset add clientset by clusterID
+func AddClientset(cluster *api.Cluster) error {
+	config := filepath.Join(homeDir(), "config")
+	file, err := os.Create(config)
+	if err != nil {
+		log.Critical("create k8s config file err: %v", err)
+		return err
+	}
+	if err = file.Truncate(0); err != nil {
+		log.Critical("clean k8s tmp config file err: %v", err)
+		return err
+	}
+	if _, err = file.Write([]byte(cluster.ConfigContent)); err != nil {
+		log.Critical("write k8s tmp config file err: %v", err)
+		return err
+	}
+	fake, err := newClientset(config)
+	if err != nil {
+		log.Critical("create k8s client err: %v, who's clusterID is %q", err, cluster.ClusterID)
+		return err
+	}
+	fakes[cluster.ClusterID] = fake
 	return nil
 }
 

@@ -1,0 +1,1 @@
+## 当前版本支持kubernetes 1.7.X , 1.6.X , 1.6.X之前有些功能不支持（ 比如statefulset,storageclass）
