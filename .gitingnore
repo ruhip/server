@@ -1,0 +1,10 @@
+\#*
+*~
+*.swp
+*.exe
+.idea
+cmd/apiserver/apiserver
+cmd/apiserver/logs
+cmd/apiserver/config
+.DS_Store
+

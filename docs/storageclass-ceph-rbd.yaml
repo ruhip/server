@@ -1,0 +1,15 @@
+apiVersion: storage.k8s.io/v1beta1
+kind: StorageClass
+metadata:
+  name: minipaas
+  annotations:
+     storageclass.beta.kubernetes.io/is-default-class: "true"
+provisioner: kubernetes.io/rbd
+parameters:
+  monitors: x.x.x.x:6789,x.x.x.x:6789,x.x.x.x:6789  
+  adminId: admin  
+  adminSecretName: ceph-secret  
+  adminSecretNamespace: kube-system  
+  pool: mini-pool  
+  userId: admin  
+  userSecretName: ceph-secret-user
