@@ -25,6 +25,7 @@ import (
 	"server/pkg/apis/apiserver/v1beta1/hpa"
 	"server/pkg/apis/apiserver/v1beta1/metric"
 	"server/pkg/apis/apiserver/v1beta1/service"
+	"server/pkg/apis/apiserver/v1beta1/storage"
 	"server/pkg/componentconfig"
 	"server/pkg/configz"
 	"server/pkg/k8s/client"
@@ -76,4 +77,6 @@ func installAPIGroup(router *mux.Router) {
 	container.RegisterContainerAPI(router)
 	hpa.RegisterHPAAPI(router)
 	metric.RegisterMetricAPI(router)
+	storage.RegisterStorageClassAPI(router)
+	storage.RegisterPersistentVolumeClaimAPI(router)
 }

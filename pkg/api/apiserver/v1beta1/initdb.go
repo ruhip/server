@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package apiserver
+package v1beta1
 
 import (
 	"server/pkg/storage/mysql"
@@ -24,5 +24,7 @@ func Init() {
 	mysql.GetDB().CreateTable(
 		new(App),
 		new(Cluster),
+		new(Storage),
+		new(TickScaleTask),
 	)
 }

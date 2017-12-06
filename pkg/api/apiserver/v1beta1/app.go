@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package apiserver
+package v1beta1
 
 import (
 	"server/pkg/storage/mysql"
@@ -34,4 +34,16 @@ func (app *App) GetAll() ([]*App, error) {
 	var apps []*App
 	err := mysql.GetDB().Find(&apps).Error
 	return apps, err
+}
+
+//GetByNamespace get  storage by namespace
+func (app *App) GetByNamespace() ([]*App, error) {
+	var apps []*App
+	err := mysql.GetDB().Find(&apps, "user_name=?", app.UserName).Error
+	return apps, err
+}
+
+// DeleteByNameAndNamespace delete app by name and namespace
+func (app *App) DeleteByNameAndNamespace() error {
+	return mysql.GetDB().Delete(App{}, "name=? and user_name=?", app.Name, app.UserName).Error
 }

@@ -18,20 +18,23 @@ import (
 	"fmt"
 	"net/http"
 
+	models "server/pkg/api/apiserver/v1beta1"
 	"server/pkg/apis/apiserver/v1beta1"
 	"server/pkg/utils/httpx"
 	"server/pkg/utils/log"
 	"server/pkg/utils/parseUtil"
 	"server/pkg/utils/validate"
 
-	"github.com/gorilla/mux"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+
+	"github.com/gorilla/mux"
 )
 
-//RegisterServiceAPI register the api of service
+//RegisterStatelessServiceAPI register the api of tateless service
 func RegisterStatelessServiceAPI(router *mux.Router) {
 	httpx.RegisterHttpHandler(router, "/namespaces/{namespace}/services", "GET", ListService)
+	httpx.RegisterHttpHandler(router, "/namespaces/{namespace}/apps/{appname}/services", "GET", ListServiceByAppName)
 	httpx.RegisterHttpHandler(router, "/namespaces/{namespace}/services", "POST", DeployService)
 	httpx.RegisterHttpHandler(router, "/namespaces/{namespace}/services/{serviceName}", "DELETE", DeleteService)
 	httpx.RegisterHttpHandler(router, "/namespaces/{namespace}/services/{serviceName}/{verb}", "PATCH", RollOrExpansionOrScaleService)
@@ -72,7 +75,7 @@ func DeleteService(req *http.Request) (string, interface{}) {
 		log.Error("delete service where named %q err: %v", name, err)
 		return httpx.StatusInternalServerError, fmt.Errorf("delete service where named %q err: %v", name, err)
 	}
-	return httpx.StatusOK, "success"
+	return httpx.StatusOK, fmt.Sprintf("delete namespace %v's service %v success", namespace, name)
 }
 
 //StopOrStartOrRedeployService start or stop or redeploy service
@@ -97,7 +100,26 @@ func ListService(req *http.Request) (string, interface{}) {
 	params := mux.Vars(req)
 	clusterID := params["clusterID"]
 	namespace := params["namespace"]
-	services, deployments, err := apiserver.ListService(namespace, clusterID)
+	services, deployments, err := apiserver.ListService("", namespace, clusterID)
+	if err != nil {
+		log.Error("get service who's namespace is %q err: %v", namespace, err)
+		return httpx.StatusInternalServerError, err
+	}
+	result := map[string]interface{}{
+		"services":   services,
+		"containers": deployments,
+	}
+	return httpx.StatusOK, result
+}
+
+//ListServiceByAppName list service by appname
+func ListServiceByAppName(req *http.Request) (string, interface{}) {
+	params := mux.Vars(req)
+	clusterID := params["clusterID"]
+	namespace := params["namespace"]
+	appname := params["appname"]
+	labels := fmt.Sprintf("%v=%v", models.MinipaasAppName, appname)
+	services, deployments, err := apiserver.ListService(labels, namespace, clusterID)
 	if err != nil {
 		log.Error("get service who's namespace is %q err: %v", namespace, err)
 		return httpx.StatusInternalServerError, err

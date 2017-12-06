@@ -191,9 +191,9 @@ func StartOrStopOrRedployApp(svcs []v1.Service, deploys []v1beta1.Deployment, ve
 }
 
 // ListService list service of paas
-func ListService(namespace, clusterID string) ([]v1.Service, []v1beta1.Deployment, error) {
+func ListService(labels, namespace, clusterID string) ([]v1.Service, []v1beta1.Deployment, error) {
 	fake := k8s.GetClientset(clusterID)
-	services, err := fake.Services().ListService("", namespace)
+	services, err := fake.Services().ListService(labels, namespace)
 	if err != nil {
 		return []v1.Service{}, []v1beta1.Deployment{}, err
 	}
@@ -516,4 +516,22 @@ func getStatefulSetPVCs(clusterID string, statefulset *v1beta1.StatefulSet) ([]v
 		}
 	}
 	return fake.PersistentVolumeClaims().ListPersistentVolumeClaim(strings.Join(labels, ","), statefulset.Namespace)
+}
+
+// CreatePersistentVolumeClaim create PersistentVolumeClaim
+func CreatePersistentVolumeClaim(pvc *v1.PersistentVolumeClaim, clusterID string) (*v1.PersistentVolumeClaim, error) {
+	fake := k8s.GetClientset(clusterID)
+	return fake.PersistentVolumeClaims().CreatePersistentVolumeClaim(pvc)
+}
+
+// DeletePersistentVolumeClaim delete PersistentVolumeClaim
+func DeletePersistentVolumeClaim(name, namespace, clusterID string) error {
+	fake := k8s.GetClientset(clusterID)
+	return fake.PersistentVolumeClaims().DeletePersistentVolumeClaim(name, namespace)
+}
+
+// ListPersistentVolumeClaim list PersistentVolumeClaim by namespace
+func ListPersistentVolumeClaim(namespace, clusterID string) ([]v1.PersistentVolumeClaim, error) {
+	fake := k8s.GetClientset(clusterID)
+	return fake.PersistentVolumeClaims().ListPersistentVolumeClaim("", namespace)
 }

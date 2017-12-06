@@ -1,4 +1,4 @@
-package apiserver
+package v1beta1
 
 import (
 	"server/pkg/storage/mysql"

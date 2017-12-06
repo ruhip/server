@@ -78,3 +78,9 @@ func ValidateCluster(req *http.Request) (*models.Cluster, error) {
 	err := json.NewDecoder(req.Body).Decode(cluster)
 	return cluster, err
 }
+
+func ValidateStorage(req *http.Request) (*models.Storage, error) {
+	storage := &models.Storage{}
+	err := json.NewDecoder(req.Body).Decode(storage)
+	return storage, err
+}

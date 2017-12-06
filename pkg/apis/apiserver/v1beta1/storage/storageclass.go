@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package storageclass
+package storage
 
 import (
 	"fmt"
@@ -28,8 +28,8 @@ import (
 
 //RegisterStorageClassAPI register the api of storageclass
 func RegisterStorageClassAPI(router *mux.Router) {
-	httpx.RegisterHttpHandler(router, "/namespaces/{namespace}/storageclasses", "POST", CreateStorageClass)
-	httpx.RegisterHttpHandler(router, "/namespaces/{namespace}/storageclasses/{name}", "DELETE", DeleteStorageClass)
+	httpx.RegisterHttpHandler(router, "/storageclasses", "POST", CreateStorageClass)
+	httpx.RegisterHttpHandler(router, "/storageclasses/{name}", "DELETE", DeleteStorageClass)
 }
 
 //CreateStorageClass create storageclass
@@ -53,8 +53,8 @@ func DeleteStorageClass(req *http.Request) (string, interface{}) {
 	clusterID := mux.Vars(req)["clusterID"]
 	name := mux.Vars(req)["name"]
 	if err := apiserver.DeleteStorageClass(name, clusterID); err != nil {
-		log.Error("delete storageclass named %q err: %v", cephrbd.Name, err)
-		return httpx.StatusInternalServerError, fmt.Errorf("delete storageclass named %q err: %v", cephrbd.Name, err)
+		log.Error("delete storageclass named %q err: %v", name, err)
+		return httpx.StatusInternalServerError, fmt.Errorf("delete storageclass named %q err: %v", name, err)
 	}
 	return httpx.StatusOK, fmt.Sprintf("delete storageclass %v success", name)
 }

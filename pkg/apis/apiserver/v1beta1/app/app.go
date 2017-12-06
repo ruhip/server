@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"net/http"
 
+	models "server/pkg/api/apiserver/v1beta1"
 	"server/pkg/apis/apiserver/v1beta1"
 	"server/pkg/utils/httpx"
 	"server/pkg/utils/log"
@@ -26,16 +27,17 @@ import (
 	"github.com/gorilla/mux"
 )
 
-//RegisterAppAPI register the api of app
+// RegisterAppAPI register the api of app
 func RegisterAppAPI(router *mux.Router) {
+	httpx.RegisterHttpHandler(router, "/namespaces/{namespace}/apps", "GET", ListApp)
 	httpx.RegisterHttpHandler(router, "/namespaces/{namespace}/apps", "POST", DeployApp)
 	httpx.RegisterHttpHandler(router, "/namespaces/{namespace}/apps/{appName}", "DELETE", DeleteApp)
 	httpx.RegisterHttpHandler(router, "/namespaces/{namespace}/apps/{appName}/{verb}", "PUT", StopOrStartOrRedeployApp)
 }
 
-//DeployApp deploy app
-//router /api/v1/clusters/{clusterID}/namespaces/{namespace}/apps
-//method POST
+// DeployApp deploy app
+// router /api/v1/clusters/{clusterID}/namespaces/{namespace}/apps
+// method POST
 func DeployApp(req *http.Request) (string, interface{}) {
 	app, err := validate.ValidateApp(req)
 	if err != nil {
@@ -52,12 +54,18 @@ func DeployApp(req *http.Request) (string, interface{}) {
 		log.Error("deploy app where named %q err: ", err)
 		return httpx.StatusInternalServerError, fmt.Errorf("deploy app where named %q err: ", err)
 	}
+
+	app.ServiceCount = svc.InstanceCount
+	app.InstanceCount = int(*(deployment.Spec.Replicas))
+	if err = app.Insert(); err != nil {
+		log.Error("record to db err: %v", err)
+	}
 	return httpx.StatusOK, result
 }
 
-//DeleteApp delete app
-//router /api/v1/clusters/{clusterID}/namespaces/{namespace}/apps/{name}
-//method DELETE
+// DeleteApp delete app
+// router /api/v1/clusters/{clusterID}/namespaces/{namespace}/apps/{name}
+// method DELETE
 func DeleteApp(req *http.Request) (string, interface{}) {
 	name := mux.Vars(req)["appName"]
 	namespace := mux.Vars(req)["namespace"]
@@ -65,7 +73,13 @@ func DeleteApp(req *http.Request) (string, interface{}) {
 	if err := apiserver.DeleteServiceByAppName(name, namespace, clusterID); err != nil {
 		return httpx.StatusInternalServerError, err
 	}
-	return httpx.StatusOK, fmt.Sprintf("delete app named %v success", name)
+	app := &models.App{}
+	app.UserName = namespace
+	app.Name = name
+	if err := app.DeleteByNameAndNamespace(); err != nil {
+		log.Error("delete %v's app %v from db err: %v", namespace, name, err)
+	}
+	return httpx.StatusOK, fmt.Sprintf("delete namespace %v's app named %v success", namespace, name)
 }
 
 //GetApps get apps
@@ -73,12 +87,12 @@ func GetApps(request *http.Request) (string, interface{}) {
 	return "", ""
 }
 
-//GetApp get app
+// GetApp get app
 func GetApp(request *http.Request) (string, interface{}) {
 	return "", ""
 }
 
-//StopOrStartOrRedeployApp start stop or redploy app
+// StopOrStartOrRedeployApp start stop or redploy app
 func StopOrStartOrRedeployApp(req *http.Request) (string, interface{}) {
 	verb := mux.Vars(req)["verb"]
 	name := mux.Vars(req)["appName"]
@@ -93,4 +107,17 @@ func StopOrStartOrRedeployApp(req *http.Request) (string, interface{}) {
 		return httpx.StatusInternalServerError, errs
 	}
 	return httpx.StatusOK, fmt.Sprintf("%v app %v success", verb, name)
+}
+
+// ListApp list app by namespace
+func ListApp(req *http.Request) (string, interface{}) {
+	namespace := mux.Vars(req)["namespace"]
+	app := &models.App{}
+	app.UserName = namespace
+	result, err := app.GetByNamespace()
+	if err != nil {
+		log.Error("get app where namespace %q err: %v", namespace, err)
+		return httpx.StatusInternalServerError, fmt.Errorf("get app where namespace %q err: %v", namespace, err)
+	}
+	return httpx.StatusOK, map[string]interface{}{"apps": result}
 }

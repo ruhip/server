@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package apiserver
+package v1beta1
 
 import (
 	"fmt"
@@ -154,7 +154,7 @@ func (svc *Service) TOPersistentVolumeClaim(namespace string) *v1.PersistentVolu
 			v1.ResourceMemory: resource.MustParse(svc.Storage.Size),
 		},
 	}
-	return k8s.NewPVC(svc.Name, namespace, MinipaasStorageClassName, svc.Storage.AccessMode, labels, resources)
+	return k8s.NewPersistenVolumeClaim(svc.Name, namespace, MinipaasStorageClassName, svc.Storage.AccessModes, labels, resources)
 }
 
 //TOStorageClass translate CephRBD to k8s StorageClass
@@ -167,9 +167,15 @@ func (rbd *CephRBD) TOStorageClass() *storagev1.StorageClass {
 		"pool":                 rbd.Pool,
 		"userId":               rbd.UserID,
 		"userSecretName":       rbd.UserSecretName,
-		"fsType":               rbd.FsType,
-		"imageFormat":          rbd.ImageFormat,
-		"imageFeatures":        rbd.ImageFeatures,
+	}
+	if rbd.FsType != "" {
+		parameters["fsType"] = rbd.FsType
+	}
+	if rbd.ImageFormat != "" {
+		parameters["imageFormat"] = rbd.ImageFormat
+	}
+	if rbd.ImageFeatures != "" {
+		parameters["imageFeatures"] = rbd.ImageFeatures
 	}
 	return k8s.NewStorageClass(MinipaasStorageClassName, rbd.Provisioner, parameters)
 }
@@ -251,4 +257,17 @@ func (svc *Service) TOK8SStatefulset(namespace, headlessServiceName string, pvc 
 		},
 	}
 	return k8s.NewStatefulSet(name, namespace, nodeName, headlessServiceName, labels, anotations, nodeSelector, replicas, volumes, initContainers, containers, pvc)
+}
+
+// TOK8SPersistentVolumeClaim translate storage to k8s PersistentVolumeClaim
+func (storage *Storage) TOK8SPersistentVolumeClaim(namespace string) *v1.PersistentVolumeClaim {
+	resourceRequirements := v1.ResourceRequirements{
+		Limits: v1.ResourceList{
+			v1.ResourceStorage: resource.MustParse(storage.Size), //TODO 根据前端传入的值做资源限制
+		},
+		Requests: v1.ResourceList{
+			v1.ResourceStorage: resource.MustParse(storage.Size), //TODO 根据前端传入的值做资源限制
+		},
+	}
+	return k8s.NewPersistenVolumeClaim(storage.Name, namespace, storage.AccessModes, MinipaasStorageClassName, nil, resourceRequirements)
 }
