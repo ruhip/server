@@ -12,8 +12,8 @@
     "adminId": "admin",
     "adminSecretName": "ceph-secret",
     "adminSecretNamespace": "kube-system",
-    "monitors": "10.39.0.114:6789,10.39.0.115:6789,10.39.0.116:6789",
-    "pool": "tenx-pool",
+    "monitors": "192.168.99.11:6789,192.168.99.12:6789,192.168.99.13:6789",
+    "pool": "minipaas-pool",
     "userId": "admin",
     "userSecretName": "ceph-user-secret",
     "provisioner": "kubernetes.io/rbd"
@@ -40,8 +40,8 @@
             "adminId": "admin",
             "adminSecretName": "ceph-secret",
             "adminSecretNamespace": "kube-system",
-            "monitors": "10.39.0.114:6789,10.39.0.115:6789,10.39.0.116:6789",
-            "pool": "tenx-pool",
+            "monitors": "192.168.99.11:6789,192.168.99.12:6789,192.168.99.13:6789",
+            "pool": "minipaas-pool",
             "userId": "admin",
             "userSecretName": "ceph-user-secret"
         }
