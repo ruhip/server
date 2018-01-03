@@ -212,14 +212,14 @@ func NewHPA(name, namespace, refobject string, minReplicas, targetCPUUtilization
 	}
 }
 
-//NewPVC return v1.PersistentVolumeClaim
-func NewPVC(name, namespace, accessMode, storageClassName string, labels map[string]string, resources v1.ResourceRequirements) *v1.PersistentVolumeClaim {
+//NewPersistenVolumeClaim return v1.PersistentVolumeClaim
+func NewPersistenVolumeClaim(name, namespace, accessMode, storageClassName string, labels map[string]string, resources v1.ResourceRequirements) *v1.PersistentVolumeClaim {
 	return &v1.PersistentVolumeClaim{
 		TypeMeta:   NewTypeMeta("PersistentVolumeClaim", "v1"),
 		ObjectMeta: NewObjectMeta(name, namespace, labels),
 		Spec: v1.PersistentVolumeClaimSpec{
-			AccessModes:      []v1.PersistentVolumeAccessMode{v1.PersistentVolumeAccessMode(accessMode)},
-			Selector:         &metav1.LabelSelector{MatchLabels: labels},
+			AccessModes: []v1.PersistentVolumeAccessMode{v1.PersistentVolumeAccessMode(accessMode)},
+			// Selector:         &metav1.LabelSelector{MatchLabels: labels},
 			Resources:        resources,
 			StorageClassName: parseUtil.StringToPointer(storageClassName),
 		},

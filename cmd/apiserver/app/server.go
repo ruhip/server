@@ -17,6 +17,7 @@ package app
 import (
 	"fmt"
 	"net/http"
+	"os"
 
 	models "server/pkg/api/apiserver/v1beta1"
 	"server/pkg/apis/apiserver/v1beta1/app"
@@ -29,6 +30,7 @@ import (
 	"server/pkg/componentconfig"
 	"server/pkg/configz"
 	"server/pkg/k8s/client"
+	"server/pkg/k8s/controllers"
 	"server/pkg/storage/mysql"
 	"server/pkg/utils/log"
 
@@ -63,20 +65,39 @@ func Run(server *APIServer) error {
 	api := root.PathPrefix("/api/v1/clusters/{clusterID}").Subrouter()
 	installAPIGroup(api)
 	http.Handle("/", root)
-	log.Info("starting apiserver and listen on : %v", fmt.Sprintf("%v:%v", server.HTTPAddr, server.HTTPPort))
+
+	// strart hot reload the config
 	go configz.Heatload()
 
+	// start pod controller
+	clusters, err := new(models.Cluster).GetAll()
+	if err != nil {
+		log.Error("get all cluster from db err: %v", err)
+		os.Exit(1)
+	}
+	for _, cluster := range clusters {
+		go startPodController(cluster.ClusterID)
+	}
+
+	log.Info("starting apiserver and listen on : %v", fmt.Sprintf("%v:%v", server.HTTPAddr, server.HTTPPort))
 	return http.ListenAndServe(fmt.Sprintf("%v:%v", server.HTTPAddr, server.HTTPPort), nil)
 }
 
 func installAPIGroup(router *mux.Router) {
 	app.RegisterAppAPI(router)
-	service.RegisterStatelessServiceAPI(router)
-	service.RegisterStatefulServiceAPI(router)
 	configmap.RegisterConfigAPI(router)
 	container.RegisterContainerAPI(router)
 	hpa.RegisterHPAAPI(router)
 	metric.RegisterMetricAPI(router)
+	service.RegisterStatelessServiceAPI(router)
+	service.RegisterStatefulServiceAPI(router)
 	storage.RegisterStorageClassAPI(router)
 	storage.RegisterPersistentVolumeClaimAPI(router)
+}
+
+func startPodController(clusterID string) {
+	stopCh := make(chan struct{})
+	clientset := client.GetClientset(clusterID)
+	pc := controllers.NewPodController(clientset.Clientset, 0)
+	pc.Run(stopCh)
 }
