@@ -6,5 +6,6 @@
 cmd/apiserver/apiserver
 cmd/apiserver/logs
 cmd/apiserver/config
+pkg/.DS_Store
 .DS_Store
 

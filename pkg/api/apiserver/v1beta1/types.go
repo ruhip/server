@@ -179,10 +179,12 @@ type Audit struct {
 
 // PodLifeCycle record service's pod life cycle
 type PodLifeCycle struct {
-	ID          uint      `json:"id"`
-	ClusterID   string    `json:"clusterID"`
-	Namespace   string    `json:"namespace"`
-	ServiceName string    `json:"serviceName"`
-	PodName     string    `json:"podName"`
-	DeleteAt    time.Time `json:"delete_at"`
+	ID          uint   `json:"id"`
+	ClusterID   string `json:"clusterID"`
+	Namespace   string `json:"namespace"`
+	ServiceName string `json:"serviceName"`
+	PodName     string `json:"podName"`
+	DeleteAt    string `json:"delete_at"`
+	CreateAt    string `json:"create_at"`
+	Status      string `json:"status"`
 }
